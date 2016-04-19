@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC 
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+
+	<package name="quartzDefault" extends="struts-default">
+		<interceptors>
+
+			<interceptor name="schedulerCheck"
+				class="org.quartz.ui.web.action.interceptors.SchedulerCheckInterceptor">
+				<param name="failResult">scheduler</param>
+			</interceptor>
+
+			<interceptor name="cancel"
+				class="org.quartz.ui.web.action.interceptors.SkipInterceptor">
+				<param name="skipKey">cancel</param>
+				<param name="skipResultName">cancel</param>
+			</interceptor>
+
+			<interceptor name="security"
+				class="org.quartz.ui.web.action.interceptors.SecurityInterceptor" >
+			<param name="userToken">User.SESSION_NAME</param>
+			</interceptor>	
+			
+			<interceptor name="ssoData"
+				class="org.quartz.ui.web.action.interceptors.SSODataInterceptor" >
+			</interceptor>	
+				
+
+			<interceptor-stack name="defaultStack">
+				<interceptor-ref name="exception" />
+				<interceptor-ref name="alias" />
+				<interceptor-ref name="servletConfig" />
+				<interceptor-ref name="prepare" />
+				<interceptor-ref name="i18n" />
+				<interceptor-ref name="chain" />
+				<interceptor-ref name="checkbox" />
+				<interceptor-ref name="staticParams" />
+				<interceptor-ref name="params">
+					<param name="excludeParams">dojo\..*</param>
+				</interceptor-ref>
+				<interceptor-ref name="conversionError" />
+				<interceptor-ref name="validation">
+					<param name="excludeMethods">
+						input,back,cancel,browse
+					</param>
+				</interceptor-ref>
+				<interceptor-ref name="workflow">
+					<param name="excludeMethods">
+						input,back,cancel,browse
+					</param>
+				</interceptor-ref>
+			</interceptor-stack>
+
+			<interceptor-stack name="schedulingDefault">
+				<interceptor-ref name="cancel" />
+				<interceptor-ref name="schedulerCheck" />
+				<interceptor-ref name="security" />
+				<interceptor-ref name="defaultStack" />
+			</interceptor-stack>
+
+
+			<interceptor-stack name="schedulingCRUD">
+				<interceptor-ref name="schedulerCheck" />
+				<interceptor-ref name="security" />
+				<interceptor-ref name="validationWorkflowStack" />
+			</interceptor-stack>
+
+		</interceptors>
+		<default-interceptor-ref name="schedulingDefault" />
+
+		<global-results>
+			<result name="scheduler" type="redirectAction">down</result>
+			
+			<result name="logon" type="chain">
+				<param name="actionName">logon</param>
+			</result>
+		</global-results>
+
+		<action name="quartzLog">
+			<result name="success" type="dispatcher">
+				/WEB-INF/logs/ShortResults.html
+			</result>
+		</action>
+
+	    <action name="register">
+			<result name="success" type="freemarker">register.ftl</result>
+		</action>
+
+   		<action name="down">
+   			<interceptor-ref name="defaultStack" />
+			<result name="success" type="freemarker">/schedule/down.ftl</result>
+		</action>
+
+		<action name="logon" class="org.quartz.ui.web.action.LogonAction">
+		<interceptor-ref name="defaultStack" />
+			<result name="success" type="freemarker">/logon.ftl</result>
+			<result name="input" type="freemarker">/logon.ftl</result>
+		</action>
+		
+		<action name="index">
+			<result name="success" type="freemarker">/index.ftl</result>
+		</action>
+
+	</package>
+
+
+	<package name="logon" extends="quartzDefault">
+
+		<action name="logon" class="org.quartz.ui.web.action.LogonAction">
+			<interceptor-ref name="defaultStack" />
+			<result name="success" type="freemarker">/logon.ftl</result>
+			<result name="input" type="freemarker">/logon.ftl</result>
+		</action>
+
+		<action name="authenticate"
+			class="org.quartz.ui.web.action.LogonAction" method="logon">
+			<interceptor-ref name="defaultStack" />
+			<result name="success" type="redirectAction">
+				<param name="actionName">index</param>
+				<param name="namespace">/</param>
+			</result>
+			<result name="input" type="chain">logon</result>
+		</action>
+
+		<action name="logout" class="org.quartz.ui.web.action.LogonAction" method="logout">
+			<interceptor-ref name="defaultStack" />
+			<result name="success" type="freemarker">/logon.ftl</result>
+		</action>
+
+	</package>
+
+
+	<package name="jobs" extends="quartzDefault" namespace="/jobs">
+		<default-interceptor-ref name="schedulingDefault" />
+
+		<action name="createJob"
+			class="org.quartz.ui.web.action.job.CreateJob" method="start">
+			<result name="input" type="freemarker">
+				/jobs/createJob.ftl
+			</result>
+			<result name="success" type="freemarker">
+				/jobs/createJob.ftl
+			</result>
+			<result name="list" type="redirect">
+				/jobs/definition/list.action
+			</result>
+			<result name="error" type="freemarker">
+				/jobs/createJob.ftl
+			</result>
+		</action>
+
+		<action name="createDefinedJob"
+			class="org.quartz.ui.web.action.job.CreateDefJob" method="start">
+			<result name="input" type="freemarker">
+				/jobs/definition/createDefinedJob.ftl
+			</result>
+			<result name="success" type="freemarker">
+				/jobs/definition/createDefinedJob.ftl
+			</result>
+			<result name="error" type="freemarker">
+				/jobs/definition/edit.ftl
+			</result>
+		</action>
+
+		<action name="saveDefinedJob"
+			class="org.quartz.ui.web.action.job.CreateDefJob">
+			<interceptor-ref name="schedulingCRUD" />
+			<result name="input" type="freemarker">
+				/jobs/definition/createDefinedJob.ftl
+			</result>
+			<result name="success" type="chain">viewJob</result>
+			<result name="error" type="freemarker">
+				/jobs/definition/createDefinedJob.ftl
+			</result>
+		</action>
+
+		<action name="viewJob"
+			class="org.quartz.ui.web.action.job.SimpleJobActions"
+			method="view">
+			<result name="success" type="freemarker">
+				/jobs/viewJob.ftl
+			</result>
+			<result name="error" type="freemarker">
+				/jobs/definition/createDefinedJob.ftl
+			</result>
+		</action>
+
+		<action name="deleteJob"
+			class="org.quartz.ui.web.action.job.SimpleJobActions"
+			method="delete">
+			<interceptor-ref name="schedulingCRUD" />
+			<result name="success" type="chain">
+				<param name="actionName">listJobs</param>
+				<param name="namespace">/schedule</param>
+			</result>
+			<result name="error" type="chain">
+				<param name="actionName">listJobs</param>
+				<param name="namespace">/schedule</param>
+			</result>
+		</action>
+
+		<action name="executeJob"
+			class="org.quartz.ui.web.action.job.SimpleJobActions"
+			method="runNow">
+			<interceptor-ref name="schedulingCRUD" />
+			<result name="success" type="chain">viewJob</result>
+			<result name="error" type="freemarker">
+				/jobs/viewJob.ftl
+			</result>
+		</action>
+
+		<action name="editJob"
+			class="org.quartz.ui.web.action.job.CreateJob" method="edit">
+			<result name="input" type="freemarker">
+				/jobs/createJob.ftl
+			</result>
+			<result name="success" type="freemarker">
+				/jobs/createJob.ftl
+			</result>
+			<result name="error" type="freemarker">
+				/jobs/definition/edit.ftl
+			</result>
+		</action>
+
+		<action name="saveJob"
+			class="org.quartz.ui.web.action.job.CreateJob">
+			<interceptor-ref name="schedulingCRUD" />
+			<result name="input" type="freemarker">
+				/jobs/createJob.ftl
+			</result>
+			<result name="success" type="freemarker">/jobs/viewJob.ftl</result>
+			<result name="list" type="redirect">
+				/jobs/definition/list.action
+			</result>
+			<result name="error" type="freemarker">
+				/jobs/definition/edit.ftl
+			</result>
+		</action>
+          <action name="viewJobBytrigger"
+			class="org.quartz.ui.web.action.job.ListJdbcTriggers"
+			method="view">
+			<result name="success" type="freemarker">
+				/jobs/viewJobBytrigger.ftl
+			</result>
+		</action>
+	
+      
+
+	</package>
+
+	<package name="schedule" extends="quartzDefault"
+		namespace="/schedule">
+		<default-interceptor-ref name="schedulingDefault" />
+    
+   
+		<action name="listJobs"
+			class="org.quartz.ui.web.action.schedule.ListJobs">
+			<result name="success" type="freemarker">
+				/jobs/list.ftl
+			</result>
+		</action>
+
+		<action name="scheduleControl" class="org.quartz.ui.web.action.schedule.ScheduleControler">
+			<interceptor-ref name="security" />
+			<interceptor-ref name="defaultStack" />
+			<result name="input" type="freemarker">chooseScheduler.ftl</result>
+			<result name="success" type="freemarker">chooseScheduler.ftl</result>
+			<result name="error" type="freemarker">chooseScheduler.ftl</result>
+		</action>
+
+		<action name="unschedule"
+			class="org.quartz.ui.web.action.schedule.UnSchedule">
+			<interceptor-ref name="schedulingCRUD" />
+			<result name="success" type="chain">
+				<param name="actionName">listJobs</param>
+				<param name="namespace">/schedule</param>
+			</result>
+		</action>
+
+		<action name="startSchedule"
+			class="org.quartz.ui.web.action.schedule.SimpleTriggerAction"
+			method="start">
+			<result name="input" type="freemarker">
+				/schedule/createSimpleTrigger.ftl
+			</result>
+			<result name="success" type="freemarker">
+				/schedule/createSimpleTrigger.ftl
+			</result>
+		</action>
+
+		<action name="simpleSchedule"
+			class="org.quartz.ui.web.action.schedule.SimpleTriggerAction">
+			<result name="input" type="freemarker">
+				/schedule/createSimpleTrigger.ftl
+			</result>
+			<result name="success" type="chain">
+				<param name="actionName">viewJob</param>
+				<param name="namespace">/jobs</param>
+			</result>
+			<result name="error" type="freemarker">
+				/schedule/createSimpleTrigger.ftl
+			</result>
+		</action>
+
+		<action name="startCronSchedule"
+			class="org.quartz.ui.web.action.schedule.CronTriggerAction"
+			method="start">
+			<result name="input" type="freemarker">
+				/schedule/createCronTrigger.ftl
+			</result>
+			<result name="success" type="freemarker">
+				/schedule/createCronTrigger.ftl
+			</result>
+		</action>
+
+		<action name="cronSchedule"
+			class="org.quartz.ui.web.action.schedule.CronTriggerAction">
+			<result name="input" type="freemarker">
+				/schedule/createCronTrigger.ftl
+			</result>
+			<result name="success" type="chain">
+				<param name="actionName">viewJob</param>
+				<param name="namespace">/jobs</param>
+			</result>
+			<result name="error" type="freemarker">
+				/schedule/createCronTrigger.ftl
+			</result>
+		</action>
+
+
+		<action name="startUICronSchedule"
+			class="org.quartz.ui.web.action.schedule.UICronTriggerAction"
+			method="input">
+			<result name="success" type="freemarker">
+				/schedule/createUICronTrigger.ftl
+			</result>
+			<result name="input" type="freemarker">
+				/schedule/createUICronTrigger.ftl
+			</result>
+		</action>
+
+
+		<action name="uiCronSchedule"
+			class="org.quartz.ui.web.action.schedule.UICronTriggerAction">
+			<result name="input" type="freemarker">
+				/schedule/createUICronTrigger.ftl
+			</result>
+			<result name="success" type="chain">
+				<param name="actionName">viewJob</param>
+				<param name="namespace">/jobs</param>
+			</result>
+			<result name="error" type="freemarker">
+				/schedule/createUICronTrigger.ftl
+			</result>
+		</action>
+
+		<action name="listTriggers"
+			class="org.quartz.ui.web.action.schedule.ListTriggers">
+			<result name="success" type="dispatcher">
+				/schedule/listAllTriggers.jsp
+			</result>
+			<result name="error" type="dispatcher">
+				/schedule/listAllTriggers.jsp
+			</result>
+		</action>
+	
+		<!-- new  add by huangtan -->
+		<action name="ListSchedule"
+			class="org.quartz.ui.web.action.schedule.ListSchedler">
+				<interceptor-ref name="security" />
+			    <interceptor-ref name="defaultStack" />
+			<result name="success" type="freemarker">
+				/schedule/ListSchedule.ftl
+			</result>
+			
+		</action>
+		<action name="new"
+			class="org.quartz.ui.web.action.schedule.ScheduleControler">
+				<interceptor-ref name="security" />
+			    <interceptor-ref name="defaultStack" />
+			<result name="success" type="freemarker">
+				/schedule/new.ftl
+			</result>
+			
+		</action>
+		<action name="ListjdbcJobs"
+			class="org.quartz.ui.web.action.job.ListJdbcJobs">
+				<interceptor-ref name="security" />
+			    <interceptor-ref name="defaultStack" />
+			<result name="success" type="freemarker">
+				/schedule/ListjdbcJobs.ftl
+			</result>
+         </action>
+       
+         <action name="ListjdbcTriggers"
+			class="org.quartz.ui.web.action.job.ListJdbcTriggers">
+				<interceptor-ref name="security" />
+			    <interceptor-ref name="defaultStack" />
+			<result name="success" type="freemarker">
+				/schedule/ListjdbcTriggers.ftl
+			</result>
+         </action>
+          <action name="stopTrigger" class="org.quartz.ui.web.action.trigger.TriggerAction" method="stop">
+		</action>
+        
+        <action name="ListjdbcTriggersHis"
+			class="org.quartz.ui.web.action.job.ListJdbcTriggers"
+			method="viewHis">
+			<result name="success" type="freemarker">
+				/schedule/ListjdbcTriggersHis.ftl
+			</result>
+		</action>  
+         
+	</package>
+	
+	<package name="triggerDef" extends="quartzDefault" namespace="/triggers">
+	    <action name="trigger" class="org.quartz.ui.web.action.trigger.TriggerAction" method="list">
+		    <result name="list" type="freemarker">list.ftl</result>
+		    <result name="CRON" type="freemarker">createCronTrigger.ftl</result>
+		    <result name="INTERVAL" type="freemarker">createIntervalTrigger.ftl</result>
+		    <result name="SIMPLE" type="freemarker">createSimpleTrigger.ftl</result>
+		</action>
+	</package>
+
+	<package name="definition" extends="quartzDefault" namespace="/jobs/definition">
+ 
+		<action name="edit" class="org.quartz.ui.web.action.definitions.DefinitionCrud">
+			<result name="input" type="freemarker">edit.ftl</result>
+			<result name="success" type="freemarker">edit.ftl</result>
+			<result name="error" type="freemarker">edit.ftl</result>
+		</action>
+
+		<action name="save" class="org.quartz.ui.web.action.definitions.DefinitionCrud" method="save" >
+			<result name="input" type="freemarker">edit.ftl</result>
+			<result name="success" type="chain">list</result>
+			<result name="error" type="freemarker">edit.ftl</result>
+			<result name="cancel" type="redirect">list.action</result>
+		</action>
+
+		<action name="list" class="org.quartz.ui.web.action.definitions.DefinitionCrud" method="list">
+			<result name="success" type="freemarker">list.ftl</result>
+		</action>
+
+		<action name="delete" class="org.quartz.ui.web.action.definitions.DefinitionCrud" method="delete">
+			<result name="success" type="redirect">list.action</result>
+		</action>
+	   
+		<action name="*" class="org.quartz.ui.web.action.definitions.DefinitionCrud">
+			<result name="input" type="freemarker">edit.ftl</result>
+			<result name="success" type="chain">list</result>
+			<result name="error" type="freemarker">edit.ftl</result>
+			<result name="cancel" type="redirect">list.action</result>
+		</action>
+
+		<action name="raw" class="org.quartz.ui.web.action.definitions.Raw">
+			<result name="success" type="freemarker">
+				/jobs/definition/raw.ftl
+			</result>
+		</action>
+
+	</package>
+
+</struts>

@@ -1,0 +1,2 @@
+@javax.xml.bind.annotation.XmlSchema(namespace = "http://www.quartz-scheduler.org/xml/JobSchedulingData", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+package org.quartz.ui.web.model;

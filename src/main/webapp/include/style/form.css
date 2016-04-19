@@ -1,0 +1,61 @@
+
+
+fieldset {
+  margin-bottom: 12px;
+  border-color: #00457b;
+  background-color: #D8E4F1;
+}
+
+form fieldset{
+	background-color:#D8E4F1;
+	border-color: #00457b;
+	border-width:2px 2px 2px 2px;
+	border-style:solid;
+	
+	/*
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:12px;
+	*/
+		
+	margin:20px 0px 20px 0px;
+	
+	position:relative;
+	display:block;
+	padding: 0px 10px 10px 10px;
+}
+
+ 
+form fieldset legend{	
+	background-color:none;
+	
+	border-width:0px 1px;
+	border-style:solid;
+	border-color:#657887;
+	
+	color:#000000;
+	font-weight:bold;
+	/*text-transform:uppercase; */
+	
+	font-weight: bold;
+    background-color: #427bac;
+    color: white;
+	
+	letter-spacing:2px;
+	padding:2px 5px;
+	margin:0px 0px 10px 0px;
+	position:relative;
+	top: -12px;
+	
+}
+	 
+
+form fieldset legend img{
+	padding:0px 5px 0px 5px;	
+}
+
+
+
+
+
+
+

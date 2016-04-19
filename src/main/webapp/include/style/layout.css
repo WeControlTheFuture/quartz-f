@@ -1,0 +1,48 @@
+pre {margin: 0; font-family: verdana, sans-serif; font-size: .9em;}
+
+.alignright {margin-top: 0; text-align: right;}
+
+/*** used for exit link ***/
+.return {position: absolute; top: 0; right: 0; text-align: right; padding: .5em;}
+
+/*******************************************************************************
+                       Positioning rules
+*******************************************************************************/
+h1, h2 {
+font-size: 30px;
+margin: 0;
+color: #040;
+   /*** The header and footer have backgrounds, to cover the 2-tone body BG  ***/
+}
+
+div#leftbox {      /*** No side padding or borders, to avoid the IE5.x box model problem ***/
+position: absolute;
+width: 150px;
+left:0px;
+margin-left: 0px;
+min-height: 300px;
+padding-top: 10px;
+background: #DEE7EC;
+}
+
+#middlebox {
+margin: 0 20% 0 170px;
+padding: 10px;
+min-height: 300px;
+/*
+border-left: 3px solid #000;
+border-right: 3px solid #000;
+background-color: #dda;     
+*/
+/*** This div has a background to cover the 2-tone body BG ***/
+}
+
+div#rightbox {    /*** No side padding or borders, to avoid the IE5.x box model problem ***/
+position: absolute;
+right: 25px;     /*** IE5/mac will show a horizontal scrollbar 
+		if this is less than 16px, or other units are used
+		http://www.l-c-n.com/IE5tests/right_pos/index.shtml ***/           
+width: 30%;
+color: #820;
+padding-top: 10px;
+}

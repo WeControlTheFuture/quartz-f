@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/'>
+
+	<appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
+           <layout class="org.apache.log4j.PatternLayout">
+             <param name="ConversionPattern" 
+		    value="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
+           </layout>	    
+	</appender>
+
+<appender name="FILE" class="org.apache.log4j.FileAppender">
+    <param name="File" value="c:/quartz-web.log"/>
+    <param name="Append" value="false"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
+    </layout>
+  </appender>
+
+   <!-- ============================== -->
+   <!-- Append messages to SMTP        -->
+   <!-- ============================== -->
+   <appender name="SMTP" class="org.apache.log4j.net.SMTPAppender">
+      <param name="Threshold" value="ERROR"/>
+      <param name="To" value="someemailadress@url.com"/>
+      <param name="Subject" value="error running task"/>
+      <param name="SMTPHost" value="mail.url.com"/>
+      <layout class="org.apache.log4j.PatternLayout">
+         <param name="ConversionPattern" value="[%d{ABSOLUTE},%c{1}] %m%n"/>
+      </layout>
+   </appender>
+
+<!-- log detail configuration -->
+	
+	<!-- log detail configuration -->
+	<logger name="org.quartz">
+		<level value="info"/> 
+		<appender-ref ref="FILE"/>
+	</logger>
+
+		
+	<logger name="org.apache.struts2">
+	  <level value="info" />
+   	   <appender-ref ref="FILE" />	     	   
+	</logger>
+		
+	<root>
+		<level value="warn"/>
+		<appender-ref ref="FILE" />	 
+	</root>
+	
+</log4j:configuration>

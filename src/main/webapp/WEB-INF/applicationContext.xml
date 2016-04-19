@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:quartz-web.properties</value>
+			</list>
+		</property>
+	</bean>
+	<!-- c3p0 连接池 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="${jdbc.driverClassName}">
+		</property>
+		<property name="jdbcUrl" value="${jdbc.url}"></property>
+		<property name="user" value="${jdbc.username}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+		<property name="minPoolSize" value="1" />
+		<property name="maxPoolSize" value="10" />
+		<property name="maxStatements" value="0" />
+		<property name="maxIdleTime" value="1800" />
+		<property name="idleConnectionTestPeriod" value="100" />
+		<property name="preferredTestQuery" value="SELECT 1" />
+		<property name="testConnectionOnCheckin" value="true" />
+		<property name="testConnectionOnCheckout" value="false" />
+	</bean>
+
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<bean id="namedParameterJdbcTemplate"
+		class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
+		<constructor-arg ref="jdbcTemplate" />
+	</bean>
+	<bean id="txManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+<!-- 	<context:annotation-config /> -->
+<!-- 	<tx:annotation-driven transaction-manager="txManager" -->
+<!-- 		proxy-target-class="true" /> -->
+	<bean id="abstractDao" abstract="true">
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+	</bean>
+	<bean id="schedulerDao" class="org.quartz.ui.web.dao.SchedulerDao"
+		parent="abstractDao" />
+
+	<bean id="authenticator" class="org.quartz.ui.web.security.SimpleAuthenticator">
+		<property name="username">
+			<value>quartz</value>
+		</property>
+		<property name="password">
+			<value>quartz</value>
+		</property>
+	</bean>
+	<bean id="logonAction" class="org.quartz.ui.web.action.LogonAction"
+		scope="prototype">
+		<property name="authenticator" ref="authenticator" />
+	</bean>
+	<bean id="quartzUser" class="org.quartz.ui.web.security.User">
+		<property name="username">
+			<value>quartz</value>
+		</property>
+		<property name="password">
+			<value>quartz</value>
+		</property>
+		<property name="roles">
+			<map>
+				<entry key="manager">
+					<value>manager</value>
+				</entry>
+			</map>
+		</property>
+	</bean>
+	<bean id="users" class="org.quartz.ui.web.security.Users">
+		<property name="userMap">
+			<map>
+				<entry key="quartz">
+					<ref bean="quartzUser" />
+				</entry>
+			</map>
+		</property>
+	</bean>
+</beans>
+
